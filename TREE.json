@@ -1,0 +1,424 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "data": {
+    "url": "https://raw.githubusercontent.com/xingyeahhh/Tree-Analysis-in-San-Francisco/main/sf_trees_cleaned.csv"
+  },
+  "hconcat": [
+    {
+      "width": 1000,
+      "height": 950,
+      "title": {
+        "text": "San Francisco Urban Tree Explorer",
+        "anchor": "middle",
+        "dx": -60,
+        "frame": "bounds",
+        "offset": -80,
+        "fontSize": 32,
+        "fontWeight": "bold",
+        "color": "#10334a",
+        "font": "Arial",
+        "subtitle": "- Decadal Trends, Distribution, Species, and Stewardship -",
+        "subtitleColor": "#a3d8dd",
+        "subtitleFont": "Georgia",
+        "subtitleFontSize": 18,
+        "subtitleFontWeight": "normal"
+      },
+      "layer": [
+        {
+          "data": {
+            "url": "https://raw.githubusercontent.com/xingyeahhh/Tree-Analysis-in-San-Francisco/main/updated_san-francisco-ca.geojson",
+            "format": {"type": "json", "property": "features"}
+          },
+          "transform": [
+            {
+              "lookup": "properties.name",
+              "from": {
+                "data": {
+                  "url": "https://raw.githubusercontent.com/xingyeahhh/Tree-Analysis-in-San-Francisco/main/sf_trees_cleaned.csv"
+                },
+                "key": "Neighborhood",
+                "fields": ["Neighborhood"]
+              }
+            }
+          ],
+          "mark": {"type": "geoshape", "fill": "lightgray", "stroke": "white"},
+          "projection": {
+            "type": "mercator",
+            "center": [-122.55, 37.7749],
+            "scale": 360000,
+            "translate": [-220, 383]
+          },
+          "encoding": {
+            "fill": {
+              "condition": {
+                "selection": "neighborhoodSelection",
+                "value": "#10334a"
+              },
+              "value": "#a3d8dd"
+            }
+          }
+        },
+        {
+          "data": {
+            "url": "https://raw.githubusercontent.com/xingyeahhh/Tree-Analysis-in-San-Francisco/main/updated_san-francisco-ca.geojson",
+            "format": {"type": "json", "property": "features"}
+          },
+          "mark": {
+            "type": "text",
+            "baseline": "middle",
+            "align": "center",
+            "fontWeight": "normal",
+            "fontSize": 9,
+            "opacity": 0.8,
+            "color": "white"
+          },
+          "encoding": {
+            "longitude": {
+              "field": "properties.centroid_longitude",
+              "type": "quantitative"
+            },
+            "latitude": {
+              "field": "properties.centroid_latitude",
+              "type": "quantitative"
+            },
+            "text": {"field": "properties.name", "type": "nominal"}
+          },
+          "projection": {
+            "type": "mercator",
+            "center": [-122.55, 37.7749],
+            "scale": 360000
+          }
+        },
+        {
+          "projection": {
+            "type": "mercator",
+            "center": [-122.55, 37.7749],
+            "scale": 360000
+          },
+          "mark": {"type": "circle", "opacity": 1, "size": 5},
+          "transform": [
+            {
+              "calculate": "datum.date >= '1970-01-01' && datum.date <= '1979-12-31' ? '1970s' : datum.date >= '1980-01-01' && datum.date <= '1989-12-31' ? '1980s' : datum.date >= '1990-01-01' && datum.date <= '1999-12-31' ? '1990s' : datum.date >= '2000-01-01' && datum.date <= '2009-12-31' ? '2000s' : datum.date >= '2010-01-01' && datum.date <= '2019-12-31' ? '2010s' : null",
+              "as": "decade"
+            },
+            {
+              "calculate": "datum.caretaker === 'Private' ? 'Private' : datum.caretaker === 'DPW' ? 'DPW' : 'Others'",
+              "as": "category"
+            },
+            {"filter": {"selection": "neighborhoodSelection"}},
+            {"filter": {"selection": "decadeSelection"}},
+            {"filter": {"selection": "categorySelection"}}
+          ],
+          "encoding": {
+            "longitude": {"field": "longitude", "type": "quantitative"},
+            "latitude": {"field": "latitude", "type": "quantitative"},
+            "size": {"value": 9},
+            "color": {
+              "field": "decade",
+              "type": "nominal",
+              "legend": {
+                "values": ["1970s", "1980s", "1990s", "2000s", "2010s"],
+                "title": "Planting Decades",
+                "orient": "bottom",
+                "offset": -20
+              }
+            },
+            "tooltip": [
+              {
+                "field": "longitude",
+                "type": "quantitative",
+                "title": "Longitude"
+              },
+              {
+                "field": "latitude",
+                "type": "quantitative",
+                "title": "Latitude"
+              },
+              {"field": "species", "type": "nominal", "title": "Species"},
+              {"field": "caretaker", "type": "nominal", "title": "Caretaker"},
+              {
+                "field": "legal_status",
+                "type": "nominal",
+                "title": "Legal Status"
+              },
+              {"field": "date", "type": "nominal", "title": "Date"},
+              {"field": "address", "type": "nominal", "title": "Address"}
+            ],
+            "opacity": {"value": 0.8}
+          }
+        }
+      ],
+      "resolve": {"legend": {"color": "independent"}}
+    },
+    {
+      "vconcat": [
+        {
+          "width": 400,
+          "height": 450,
+          "mark": "bar",
+          "transform": [
+            {
+              "calculate": "datum.caretaker === 'Private' ? 'Private' : datum.caretaker === 'DPW' ? 'DPW' : 'Others'",
+              "as": "category"
+            },
+            {
+              "calculate": "datum.date >= '1970-01-01' && datum.date <= '1979-12-31' ? '1970s' : datum.date >= '1980-01-01' && datum.date <= '1989-12-31' ? '1980s' : datum.date >= '1990-01-01' && datum.date <= '1999-12-31' ? '1990s' : datum.date >= '2000-01-01' && datum.date <= '2009-12-31' ? '2000s' : datum.date >= '2010-01-01' && datum.date <= '2019-12-31' ? '2010s' : null",
+              "as": "decade"
+            },
+            {"filter": {"selection": "decadeSelection"}},
+            {"filter": {"selection": "categorySelection"}}
+          ],
+          "encoding": {
+            "y": {
+              "field": "Neighborhood",
+              "type": "nominal",
+              "sort": {"op": "count", "field": "tree_id", "order": "descending"}
+            },
+            "x": {
+              "aggregate": "count",
+              "field": "tree_id",
+              "type": "quantitative",
+              "axis": {"title": "Number of Trees"}
+            },
+            "color": {
+              "condition": {
+                "selection": "neighborhoodSelection",
+                "field": "decade",
+                "type": "nominal",
+                "legend": {
+                  "title": "Planting Decades",
+                  "values": ["1970s", "1980s", "1990s", "2000s", "2010s"],
+                  "orient": "left",
+                  "offset": -35
+                }
+              },
+              "value": "lightgray",
+              "legend": {
+                "title": "Planting Decades",
+                "values": ["1970s", "1980s", "1990s", "2000s", "2010s"],
+                "orient": "left",
+                "offset": -35
+              }
+            }
+          },
+          "selection": {
+            "neighborhoodSelection": {
+              "type": "multi",
+              "toggle": "true",
+              "on": "click",
+              "fields": ["Neighborhood"]
+            }
+          }
+        },
+        {
+          "hconcat": [
+            {
+              "width": 200,
+              "height": 150,
+              "mark": "bar",
+              "transform": [
+                {
+                  "calculate": "datum.caretaker === 'Private' ? 'Private' : datum.caretaker === 'DPW' ? 'DPW' : 'Others'",
+                  "as": "category"
+                },
+                {
+                  "calculate": "datum.date >= '1970-01-01' && datum.date <= '1979-12-31' ? '1970s' : datum.date >= '1980-01-01' && datum.date <= '1989-12-31' ? '1980s' : datum.date >= '1990-01-01' && datum.date <= '1999-12-31' ? '1990s' : datum.date >= '2000-01-01' && datum.date <= '2009-12-31' ? '2000s' : datum.date >= '2010-01-01' && datum.date <= '2019-12-31' ? '2010s' : null",
+                  "as": "decade"
+                },
+                {"filter": {"selection": "neighborhoodSelection"}},
+                {"filter": {"selection": "categorySelection"}}
+              ],
+              "encoding": {
+                "x": {
+                  "field": "decade",
+                  "type": "nominal",
+                  "axis": {"title": "Decade"}
+                },
+                "y": {
+                  "aggregate": "count",
+                  "field": "tree_id",
+                  "type": "quantitative",
+                  "axis": {"title": "Number of Trees"}
+                },
+                "color": {
+                  "field": "decade",
+                  "type": "nominal",
+                  "scale": {
+                    "name": "decadecolor",
+                    "domain": ["1970s", "1980s", "1990s", "2000s", "2010s"],
+                    "range": [
+                      "#4c90ba",
+                      "#2bc2c2",
+                      "#f7d166",
+                      "#de5151",
+                      "#ff9c40"
+                    ]
+                  },
+                  "legend": null
+                }
+              },
+              "selection": {
+                "decadeSelection": {
+                  "type": "interval",
+                  "on": "[mousedown[!event.shiftKey], window:mouseup] > window:mousemove!",
+                  "translate": "[mousedown[!event.shiftKey], window:mouseup] > window:mousemove!",
+                  "zoom": "wheel![event.shiftKey]"
+                }
+              }
+            },
+            {
+              "width": 100,
+              "height": 140,
+              "title": {
+                "text": "Trees Caretaker Distribution",
+                "anchor": "middle",
+                "frame": "bounds",
+                "offset": -220,
+                "fontSize": 11
+              },
+              "layer": [
+                {
+                  "mark": {
+                    "type": "arc",
+                    "innerRadius": 70,
+                    "x": {"signal": "width / 2 +80"}
+                  },
+                  "transform": [
+                    {"filter": {"selection": "neighborhoodSelection"}},
+                    {"filter": {"selection": "decadeSelection"}},
+                    {
+                      "calculate": "datum.date >= '1970-01-01' && datum.date <= '1979-12-31' ? '1970s' : datum.date >= '1980-01-01' && datum.date <= '1989-12-31' ? '1980s' : datum.date >= '1990-01-01' && datum.date <= '1999-12-31' ? '1990s' : datum.date >= '2000-01-01' && datum.date <= '2009-12-31' ? '2000s' : datum.date >= '2010-01-01' && datum.date <= '2019-12-31' ? '2010s' : null",
+                      "as": "decade"
+                    },
+                    {
+                      "calculate": "datum.caretaker === 'Private' ? 'Private' : datum.caretaker === 'DPW' ? 'DPW' : 'Others'",
+                      "as": "category"
+                    },
+                    {
+                      "aggregate": [
+                        {"op": "count", "field": "tree_id", "as": "treeCount"}
+                      ],
+                      "groupby": ["category"]
+                    },
+                    {
+                      "window": [
+                        {"op": "sum", "field": "treeCount", "as": "total"}
+                      ],
+                      "frame": [null, null]
+                    },
+                    {
+                      "calculate": "datum.treeCount / datum.total",
+                      "as": "percent"
+                    }
+                  ],
+                  "encoding": {
+                    "theta": {"field": "treeCount", "type": "quantitative"},
+                    "color": {
+                      "condition": {
+                        "selection": "categorySelection",
+                        "field": "category",
+                        "type": "nominal",
+                        "scale": {
+                          "name": "uniquePieColorScale",
+                          "domain": ["Private", "DPW", "Others"],
+                          "range": ["#e41a1c", "#377ecc", "#999999"]
+                        },
+                        "legend": {
+                          "title": "Caretaker Category",
+                          "values": ["Private", "DPW", "Others"],
+                          "orient": "top"
+                        }
+                      },
+                      "value": "lightgray",
+                      "legend": {
+                        "title": "Caretaker Category",
+                        "values": ["Private", "DPW", "Others"],
+                        "orient": "top"
+                      }
+                    }
+                  },
+                  "selection": {
+                    "categorySelection": {
+                      "type": "multi",
+                      "toggle": "true",
+                      "on": "click",
+                      "fields": ["category"]
+                    }
+                  }
+                },
+                {
+                  "mark": {"type": "text", "radiusOffset": 15},
+                  "encoding": {
+                    "text": {"field": "category", "type": "nominal"},
+                    "theta": {"field": "treeCount", "type": "quantitative"}
+                  }
+                }
+              ]
+            }
+          ],
+          "resolve": {"legend": {"color": "independent"}}
+        },
+        {
+          "width": 400,
+          "height": 140,
+          "mark": "bar",
+          "transform": [
+            {
+              "calculate": "datum.caretaker === 'Private' ? 'Private' : datum.caretaker === 'DPW' ? 'DPW' : 'Others'",
+              "as": "category"
+            },
+            {
+              "calculate": "datum.date >= '1970-01-01' && datum.date <= '1979-12-31' ? '1970s' : datum.date >= '1980-01-01' && datum.date <= '1989-12-31' ? '1980s' : datum.date >= '1990-01-01' && datum.date <= '1999-12-31' ? '1990s' : datum.date >= '2000-01-01' && datum.date <= '2009-12-31' ? '2000s' : datum.date >= '2010-01-01' && datum.date <= '2019-12-31' ? '2010s' : null",
+              "as": "decade"
+            },
+            {"filter": {"selection": "neighborhoodSelection"}},
+            {"filter": {"selection": "decadeSelection"}},
+            {"filter": {"selection": "categorySelection"}},
+            {
+              "aggregate": [{"op": "count", "as": "count", "field": "species"}],
+              "groupby": ["species"]
+            },
+            {
+              "window": [{"op": "rank", "as": "rank"}],
+              "sort": [{"field": "count", "order": "descending"}]
+            },
+            {"filter": {"field": "rank", "lte": 12}}
+          ],
+          "encoding": {
+            "y": {
+              "field": "species",
+              "type": "nominal",
+              "sort": {"field": "count", "order": "descending"},
+              "axis": {"title": "Species"}
+            },
+            "x": {
+              "field": "count",
+              "type": "quantitative",
+              "axis": {"title": "Number of Trees"}
+            },
+            "color": {"value": "#9ed69e"}
+          },
+          "selection": {
+            "neighborhoodSelection": {
+              "type": "multi",
+              "fields": ["Neighborhood"],
+              "bind": "legend"
+            },
+            "decadeSelection": {
+              "type": "multi",
+              "fields": ["decade"],
+              "bind": "legend"
+            },
+            "categorySelection": {
+              "type": "multi",
+              "fields": ["category"],
+              "bind": "legend"
+            }
+          }
+        }
+      ],
+      "resolve": {"legend": {"color": "independent"}}
+    }
+  ],
+  "config": {}
+}
